@@ -2,6 +2,7 @@
 
 import { useRoomContext, RoomAudioRenderer, VoiceAssistantControlBar } from '@livekit/components-react';
 import { PhoneOff } from 'lucide-react';
+import AgentHealthGuard from './AgentHealthGuard'; // Import here
 
 export default function ActiveCallView({ onLeave }: { onLeave: () => void }) {
   const room = useRoomContext();
@@ -11,11 +12,16 @@ export default function ActiveCallView({ onLeave }: { onLeave: () => void }) {
       <div className="w-16 h-16 bg-red-500 rounded-full mx-auto mb-4 flex items-center justify-center animate-pulse">
         <PhoneOff className="text-white" size={24} />
       </div>
+      
       <h2 className="text-white text-2xl font-black mb-1">{room.name}</h2>
-      <p className="text-slate-400 text-sm mb-8">Human Supervisor Intervened</p>
+      
+      {/* ADD THE GUARD HERE */}
+      <AgentHealthGuard />
 
-      <RoomAudioRenderer />
-      <VoiceAssistantControlBar />
+      <div className="mt-8">
+        <RoomAudioRenderer />
+        <VoiceAssistantControlBar />
+      </div>
 
       <button 
         onClick={onLeave}
