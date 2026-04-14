@@ -2,7 +2,7 @@
 
 import { useRemoteParticipants, useRoomContext } from '@livekit/components-react';
 import { useEffect, useState } from 'react';
-import { AlertTriangle, Activity } from 'lucide-react';
+import { AlertTriangle, Wifi } from 'lucide-react';
 
 export default function AgentHealthGuard() {
   const participants = useRemoteParticipants();
@@ -10,16 +10,16 @@ export default function AgentHealthGuard() {
   const [status, setStatus] = useState<'healthy' | 'warning' | 'error'>('healthy');
 
   useEffect(() => {
-    // Identify participants by your naming convention
     const agent = participants.find(p => p.identity.toLowerCase().includes('agent'));
-    const customer = participants.find(p => !p.identity.toLowerCase().includes('agent') && !p.identity.toLowerCase().includes('supervisor'));
+    const customer = participants.find(
+      p => !p.identity.toLowerCase().includes('agent') &&
+           !p.identity.toLowerCase().includes('supervisor')
+    );
 
     if (room.state === 'connected') {
       if (customer && !agent) {
-        // Customer is alone: Agent crashed or disconnected
         setStatus('error');
       } else if (agent && agent.connectionQuality === 'poor') {
-        // Agent is present but lagging
         setStatus('warning');
       } else {
         setStatus('healthy');
@@ -29,17 +29,47 @@ export default function AgentHealthGuard() {
 
   if (status === 'healthy') return null;
 
+  const isError = status === 'error';
+
   return (
-    <div className={`mt-4 p-3 rounded-xl border flex items-center gap-3 transition-all ${
-      status === 'error' ? 'bg-red-50 border-red-200 text-red-700' : 'bg-amber-50 border-amber-200 text-amber-700'
-    }`}>
-      <AlertTriangle size={18} className={status === 'error' ? 'animate-pulse' : ''} />
-      <div className="flex flex-col">
-        <p className="text-xs font-bold uppercase tracking-tight">
-          {status === 'error' ? 'Agent Failure Detected' : 'Agent Connection Weak'}
+    <div style={{
+      background: isError ? '#FCEBEB' : '#FAEEDA',
+      border: `1px solid ${isError ? '#F7C1C1' : '#FAC775'}`,
+      borderRadius: 10,
+      padding: '12px 16px',
+      display: 'flex',
+      alignItems: 'flex-start',
+      gap: 10,
+      fontFamily: "'Geist Sans', 'Helvetica Neue', sans-serif",
+    }}>
+      <div style={{
+        width: 28, height: 28, borderRadius: 7, flexShrink: 0,
+        background: isError ? '#F7C1C1' : '#FAC775',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: isError ? '#A32D2D' : '#854F0B',
+      }}>
+        {isError
+          ? <AlertTriangle size={14} style={{ animation: 'pulse 1.5s infinite' }} />
+          : <Wifi size={14} />
+        }
+      </div>
+      <div>
+        <p style={{
+          fontSize: 11, fontWeight: 700, textTransform: 'uppercase',
+          letterSpacing: '0.07em', margin: 0,
+          color: isError ? '#A32D2D' : '#854F0B',
+        }}>
+          {isError ? 'Agent Failure Detected' : 'Agent Connection Degraded'}
         </p>
-        <p className="text-[10px] opacity-80">
-          {status === 'error' ? 'AI has left the room. Immediate takeover required.' : 'AI may experience high latency.'}
+        <p style={{
+          fontSize: 11, margin: '3px 0 0',
+          color: isError ? '#A32D2D' : '#854F0B',
+          opacity: 0.8,
+        }}>
+          {isError
+            ? 'AI has disconnected. Immediate takeover required.'
+            : 'AI agent experiencing high latency. Monitor closely.'
+          }
         </p>
       </div>
     </div>
